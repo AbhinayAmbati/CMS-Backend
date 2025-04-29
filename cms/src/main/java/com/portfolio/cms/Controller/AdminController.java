@@ -14,8 +14,14 @@ public class AdminController {
     @Autowired
     AdminService adminService;
 
-    @GetMapping("/getAllUsers")
+    @GetMapping("/getallusers")
     public ResponseEntity<Object> getAllUsers() {
-        return adminService.getAllUsers();
+        try {
+            return adminService.getAllUsers();
+        } catch (Exception e) {
+            e.printStackTrace(); // <--- print the error
+            return ResponseEntity.status(500).body("Internal Server Error: " + e.getMessage());
+        }
     }
+
 }
