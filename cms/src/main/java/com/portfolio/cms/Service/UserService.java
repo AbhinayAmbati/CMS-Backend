@@ -4,6 +4,8 @@ package com.portfolio.cms.Service;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.portfolio.cms.Dao.AuthDao;
+import com.portfolio.cms.Dao.VerificationTokenDao;
+import com.portfolio.cms.Model.VerificationToken;
 import com.portfolio.cms.config.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,18 +13,19 @@ import org.springframework.http.ResponseEntity;
 import com.portfolio.cms.Model.User;
 import jakarta.servlet.http.HttpServletRequest;
 
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+
 import com.portfolio.cms.Dao.PasswordResetDao;
 import com.portfolio.cms.Dao.UserDao;
 import com.portfolio.cms.Model.PasswordReset;
 import jakarta.transaction.Transactional;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Transactional
 @Service
@@ -48,6 +51,10 @@ public class UserService {
 
     @Autowired
     private JwtUtil jwtUtil;
+    @Autowired
+    private VerificationTokenDao verificationTokenDao;
+    @Autowired
+    JavaMailSender emailSender;
 
     public String createPasswordResetTokenForUser(String email) {
         User user = userDao.findByEmail(email)
@@ -237,6 +244,211 @@ public class UserService {
         } catch (Exception e) {
             return new ResponseEntity<>("An error occurred while updating user details",
                     HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public ResponseEntity<Object> updatePassword(String password, HttpServletRequest request) {
+        try {
+            // Authentication validation
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return new ResponseEntity<>("Authorization header missing or invalid", HttpStatus.UNAUTHORIZED);
+            }
+
+            String token = authHeader.substring(7);
+            if (!jwtUtil.validateToken(token)) {
+                return new ResponseEntity<>("Invalid token", HttpStatus.UNAUTHORIZED);
+            }
+
+            // Extract authenticated user's email from token
+            String authenticatedEmail = jwtUtil.extractUsername(token);
+
+            // Find the user in the database
+            Optional<User> userData = userDao.findByEmail(authenticatedEmail);
+            if (userData.isEmpty()) {
+                return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+            }
+
+            User user = userData.get();
+
+            if(passwordEncoder.matches(password, user.getPassword())) {
+                return new ResponseEntity<>("New password cannot be same as old password", HttpStatus.BAD_REQUEST);
+            }
+
+            // Update password
+            user.setPassword(passwordEncoder.encode(password));
+
+            userDao.save(user);
+
+            return ResponseEntity.ok("Password updated successfully");
+
+        } catch (Exception e) {
+            return new ResponseEntity<>("An error occurred while updating password",
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // Step 1: Request to change email - initiates OTP verification
+    public ResponseEntity<Object> initiateEmailUpdate(String newEmail, HttpServletRequest request) {
+        try {
+            // Input validation
+            if(newEmail == null || newEmail.isEmpty()) {
+                return new ResponseEntity<>("New email is required", HttpStatus.BAD_REQUEST);
+            }
+
+            // Authentication validation
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return new ResponseEntity<>("Authorization header missing or invalid", HttpStatus.UNAUTHORIZED);
+            }
+
+            String token = authHeader.substring(7);
+            if (!jwtUtil.validateToken(token)) {
+                return new ResponseEntity<>("Invalid token", HttpStatus.UNAUTHORIZED);
+            }
+
+            // Extract authenticated user's email from token
+            String currentEmail = jwtUtil.extractUsername(token);
+
+            // Find the user in the database
+            Optional<User> userData = userDao.findByEmail(currentEmail);
+            if (userData.isEmpty()) {
+                return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+            }
+
+            User user = userData.get();
+
+            // Check if new email is already registered
+            if (userDao.findByEmail(newEmail).isPresent()) {
+                return new ResponseEntity<>(newEmail + " is already registered by another user.", HttpStatus.CONFLICT);
+            }
+
+            // If new email is same as current email
+            if (currentEmail.equals(newEmail)) {
+                return new ResponseEntity<>("New email cannot be the same as your current email", HttpStatus.BAD_REQUEST);
+            }
+
+            // Generate OTP (6-digit random number)
+            String otp = generateOTP();
+
+            // Create or update verification token with special type for email change
+            VerificationToken verificationToken = verificationTokenDao
+                    .findByEmail(currentEmail)
+                    .orElse(new VerificationToken());
+
+            verificationToken.setEmail(currentEmail);
+            verificationToken.setToken(otp);
+            verificationToken.setExpiryDate(LocalDateTime.now().plusMinutes(10)); // Expires in 10 minutes
+
+            // Store the new email as pendingUserData (reusing field for different purpose)
+            verificationToken.setPendingUserData(newEmail);
+
+            verificationTokenDao.save(verificationToken);
+
+            // Send OTP to the NEW email address to verify ownership
+            sendEmailChangeOTP(newEmail, otp);
+
+            return new ResponseEntity<>("Verification code sent to " + newEmail, HttpStatus.OK);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>("An error occurred during email update initiation", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private String generateOTP() {
+        Random random = new Random();
+        int otp = 100000 + random.nextInt(900000); // Generate a number between 100000 and 999999
+        return String.valueOf(otp);
+    }
+
+    // Step 2: Verify OTP and complete email change
+    public ResponseEntity<Object> verifyOTPAndCompleteEmailUpdate(String otp, HttpServletRequest request) {
+        try {
+            // Input validation
+            if(otp == null || otp.isEmpty()) {
+                return new ResponseEntity<>("Verification code is required", HttpStatus.BAD_REQUEST);
+            }
+
+            // Authentication validation
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return new ResponseEntity<>("Authorization header missing or invalid", HttpStatus.UNAUTHORIZED);
+            }
+
+            String token = authHeader.substring(7);
+            if (!jwtUtil.validateToken(token)) {
+                return new ResponseEntity<>("Invalid token", HttpStatus.UNAUTHORIZED);
+            }
+
+            // Extract authenticated user's email from token
+            String currentEmail = jwtUtil.extractUsername(token);
+
+            // Find verification token
+            Optional<VerificationToken> optToken = verificationTokenDao.findByEmailAndToken(currentEmail, otp);
+
+            if (optToken.isEmpty()) {
+                return new ResponseEntity<>("Invalid verification code", HttpStatus.BAD_REQUEST);
+            }
+
+            VerificationToken verificationToken = optToken.get();
+
+            // Check if token is expired
+            if (verificationToken.isExpired()) {
+                verificationTokenDao.delete(verificationToken);
+                return new ResponseEntity<>("Verification code has expired. Please request a new one.", HttpStatus.BAD_REQUEST);
+            }
+
+            // Get the new email address
+            String newEmail = verificationToken.getPendingUserData();
+
+            // Find the user in the database
+            Optional<User> userData = userDao.findByEmail(currentEmail);
+            if (userData.isEmpty()) {
+                return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+            }
+
+            User user = userData.get();
+
+            // Double-check the new email is not taken (in case someone registered between steps)
+            if (userDao.findByEmail(newEmail).isPresent()) {
+                return new ResponseEntity<>(newEmail + " is already registered by another user.", HttpStatus.CONFLICT);
+            }
+
+            // Update the email
+            user.setEmail(newEmail);
+            userDao.save(user);
+
+            // Clean up verification token
+            verificationTokenDao.delete(verificationToken);
+
+            // Generate new JWT token with the new email
+            String newToken = jwtUtil.generateToken(newEmail);
+
+            // Create response with new token
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Email updated successfully");
+            response.put("token", newToken);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>("An error occurred during email update", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // Helper method to send OTP for email change
+    private void sendEmailChangeOTP(String email, String otp) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(email);
+            message.setSubject("Your Email Change Verification Code");
+            message.setText("Your verification code to change your account email is: " + otp +
+                    "\n\nThis code will expire in 10 minutes. If you didn't request an email change, " +
+                    "please ignore this email and secure your account.");
+
+            emailSender.send(message);
+        } catch (Exception e) {
+            throw e; // Re-throw to be handled by calling method
         }
     }
 }

@@ -32,4 +32,36 @@ public class UserController {
                 request
         );
     }
+
+    @PostMapping("/email/update/initiate")
+    public ResponseEntity<Object> initiateEmailUpdate(@RequestBody EmailRequest emailRequest, HttpServletRequest request) {
+        return userService.initiateEmailUpdate(
+                emailRequest.getEmail(),
+                request
+        );
+    }
+
+    @PostMapping("/email/update/verify")
+    public ResponseEntity<Object> verifyOTPAndCompleteEmailUpdate(@RequestBody OtpRequest otpRequest, HttpServletRequest request) {
+        return userService.verifyOTPAndCompleteEmailUpdate(
+                otpRequest.getOtp(),
+                request
+        );
+    }
+
+    @PostMapping("/updatepassword")
+    public ResponseEntity<Object> updatePassword(@RequestBody User user, HttpServletRequest request) {
+        return userService.updatePassword(
+                user.getPassword(),
+                request
+        );
+    }
+}
+
+class OtpRequest {
+    private String otp;
+
+    // Getters and setters
+    public String getOtp() { return otp; }
+    public void setOtp(String otp) { this.otp = otp; }
 }

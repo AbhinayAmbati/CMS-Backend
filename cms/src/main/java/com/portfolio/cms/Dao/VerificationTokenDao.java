@@ -9,4 +9,7 @@ public interface VerificationTokenDao extends JpaRepository<VerificationToken, L
     Optional<VerificationToken> findByEmail(String email);
     Optional<VerificationToken> findByEmailAndToken(String email, String token);
     void deleteByEmail(String email);
+
+    void delete(VerificationToken verificationToken);
+
 }

@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Configuration
 @Service
@@ -26,4 +27,20 @@ public class AdminService {
         return new ResponseEntity<>(users, HttpStatus.OK); // Return users with a 200 OK status
     }
 
+    public ResponseEntity<Object> deleteUser(String email) {
+        try {
+            // Remove the cast to User
+            Optional<User> userOptional = adminDao.findByEmail(email);
+
+            if (userOptional.isEmpty()) {
+                return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+            }
+
+            User user = userOptional.get();
+            adminDao.delete(user);
+            return new ResponseEntity<>("User deleted successfully", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error deleting user: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
