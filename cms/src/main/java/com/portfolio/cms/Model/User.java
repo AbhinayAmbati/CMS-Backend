@@ -12,8 +12,6 @@ public class User {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
-    private String firstName;
-
     public Integer getId() {
         return id;
     }
@@ -22,21 +20,14 @@ public class User {
         this.id = id;
     }
 
-    public String getFirstName() {
-        return firstName;
+    public String getUsername() {
+        return username;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
 
     public String getEmail() {
         return email;
@@ -54,7 +45,7 @@ public class User {
         this.password = password;
     }
 
-    private String lastName;
+    private String username;
     private String email;
     private String password;
 
@@ -67,6 +58,16 @@ public class User {
     }
 
     private boolean admin = false;
+
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
+    }
+
+    private String profileImage;
 
 }
 
