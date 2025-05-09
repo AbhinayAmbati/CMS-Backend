@@ -19,13 +19,26 @@ public class AuthController {
     @Autowired
     UserService userService;
 
-    @PostMapping("/signup")
-    public ResponseEntity<Object> signUp(@RequestBody User user){
-        return authService.signUp(
+    @PostMapping("/signup/initiate")
+    public ResponseEntity<Object> initiateSignUp(@RequestBody User user) {
+        return authService.initiateSignUp(
                 user.getEmail(),
                 user.getUsername(),
                 user.getPassword()
         );
+    }
+
+    @PostMapping("/signup/verify")
+    public ResponseEntity<Object> verifyOTPAndCompleteSignUp(@RequestBody VerificationRequest verificationRequest) {
+        return authService.verifyOTPAndCompleteSignUp(
+                verificationRequest.getEmail(),
+                verificationRequest.getOtp()
+        );
+    }
+
+    @PostMapping("/signup/resend-otp")
+    public ResponseEntity<Object> resendOTP(@RequestBody EmailRequest email) {
+        return authService.resendOTP(email.getEmail());
     }
 
     @PostMapping("/signin")
@@ -70,4 +83,24 @@ public class AuthController {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
+}
+
+class VerificationRequest {
+    private String email;
+    private String otp;
+
+    // Getters and setters
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getOtp() { return otp; }
+    public void setOtp(String otp) { this.otp = otp; }
+}
+
+class EmailRequest {
+    private String email;
+
+    // Getters and setters
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 }
