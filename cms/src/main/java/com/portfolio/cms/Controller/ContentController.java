@@ -50,7 +50,6 @@ public class ContentController {
     }
 
     // Update content
-    // Add this method to accept POST requests for updates
     @PutMapping("/update/{id}")
     public ResponseEntity<Object> updateContentPost(
             @PathVariable Integer id,

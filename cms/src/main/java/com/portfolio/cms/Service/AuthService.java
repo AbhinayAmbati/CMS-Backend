@@ -379,111 +379,126 @@ public class AuthService {
         String subject = "Password Reset Request";
         String content = String.format("""
     <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Password Reset</title>
-        <style>
-            body {
-                font-family: 'Segoe UI', Arial, sans-serif;
-                line-height: 1.7;
-                color: #2d3748;
-                margin: 0;
-                padding: 0;
-                background-color: #f7fafc;
-            }
-            .container {
-                max-width: 600px;
-                margin: 40px auto;
-                padding: 0;
-                background-color: #ffffff;
-                border-radius: 12px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            }
-            .header {
-                background: linear-gradient(135deg, #4299e1 0%%, #3182ce 100%%);
-                padding: 32px 20px;
-                text-align: center;
-                border-radius: 12px 12px 0 0;
-            }
-            .header h1 {
-                color: #ffffff;
-                margin: 0;
-                font-size: 28px;
-                font-weight: 600;
-                letter-spacing: 0.5px;
-            }
-            .content {
-                padding: 40px 32px;
-                background-color: #ffffff;
-                border-radius: 0 0 12px 12px;
-            }
-            .button {
-                display: inline-block;
-                padding: 14px 32px;
-                background: linear-gradient(135deg, #4299e1 0%%, #3182ce 100%%);
-                color: #ffffff;
-                text-decoration: none;
-                border-radius: 8px;
-                margin: 24px 0;
-                font-weight: 600;
-                letter-spacing: 0.5px;
-                transition: transform 0.2s ease, box-shadow 0.2s ease;
-                box-shadow: 0 2px 4px rgba(66, 153, 225, 0.3);
-            }
-            .button:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 4px 8px rgba(66, 153, 225, 0.4);
-            }
-            .note {
-                font-size: 14px;
-                color: #718096;
-                margin-top: 24px;
-                padding: 16px;
-                background-color: #f8fafc;
-                border-radius: 8px;
-                border-left: 4px solid #4299e1;
-            }
-            .footer {
-                text-align: center;
-                margin-top: 32px;
-                padding-top: 24px;
-                border-top: 1px solid #e2e8f0;
-                font-size: 13px;
-                color: #718096;
-            }
-            p {
-                margin: 16px 0;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h1>Password Reset Request</h1>
-            </div>
-            <div class="content">
-                <p>Hello,</p>
-                <p>We received a request to reset your password. To create a new password, please click the secure button below:</p>
-                <div style="text-align: center;">
-                    <a href="%s" class="button">Reset Password</a>
-                </div>
-                <div class="note">
-                    <strong>Security Notice:</strong>
-                    <p style="margin: 8px 0 0 0">• This link will expire in 30 minutes</p>
-                    <p style="margin: 4px 0 0 0">• If you didn't request this reset, please ignore this email</p>
-                    <p style="margin: 4px 0 0 0">• Contact our support team if you have any concerns</p>
-                </div>
-            </div>
-            <div class="footer">
-                <p>This is an automated message. Please do not reply to this email.</p>
-                <p style="margin-top: 8px;">© 2025 Job Portal. All rights reserved.</p>
-            </div>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Reset - Content Management System</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            line-height: 1.7;
+            color: #333333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 0;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%%, #1a202c 100%%);
+            padding: 28px 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 26px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .content {
+            padding: 36px 32px;
+            background-color: #ffffff;
+            border-radius: 0 0 8px 8px;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #2c3e50 0%%, #1a202c 100%%);
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 24px 0;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .note {
+            font-size: 14px;
+            color: #555555;
+            margin-top: 24px;
+            padding: 16px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #2c3e50;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #e9ecef;
+            font-size: 13px;
+            color: #6c757d;
+        }
+        p {
+            margin: 16px 0;
+            color: #444444;
+        }
+        .logo {
+            margin-bottom: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffffff;
+            letter-spacing: 1px;
+        }
+        .accent {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">CONTENT MANAGEMENT SYSTEM</div>
+            <h1>Password Reset Request</h1>
         </div>
-    </body>
-    </html>
+        <div class="content">
+            <p>Hello,</p>
+            <p>We received a request to reset your password for your <span class="accent">Content Management System</span> account. To create a new password, please click the secure button below:</p>
+            <div style="text-align: center;">
+                <a href="%s" class="button">Reset Password</a>
+            </div>
+            <div class="note">
+                <strong>Security Notice:</strong>
+                <p style="margin: 8px 0 0 0">• This link will expire in 30 minutes</p>
+                <p style="margin: 4px 0 0 0">• If you didn't request this reset, please ignore this email</p>
+                <p style="margin: 4px 0 0 0">• Contact our support team if you have any concerns</p>
+            </div>
+            <p style="margin-top: 24px; font-size: 15px;">Once you've reset your password, you'll be able to access all your content and management tools again.</p>
+        </div>
+        <div class="footer">
+            <p>This is an automated message. Please do not reply to this email.</p>
+            <p style="margin-top: 8px;">© 2025 Content Management System. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html> 
 """, resetUrl);
+
 
         // Create MimeMessage instead of SimpleMailMessage to support HTML
         MimeMessage mimeMessage = mailSender.createMimeMessage();
