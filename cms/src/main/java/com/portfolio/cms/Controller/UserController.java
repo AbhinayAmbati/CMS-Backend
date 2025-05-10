@@ -60,6 +60,11 @@ public class UserController {
         );
     }
 
+    @DeleteMapping("/deleteaccount")
+    public ResponseEntity<Object> deleteAccount(HttpServletRequest request) {
+        return userService.deleteAccount(request);
+    }
+
 
 }
 

@@ -453,4 +453,39 @@ public class UserService {
             throw e; // Re-throw to be handled by calling method
         }
     }
+
+    public ResponseEntity<Object> deleteAccount(HttpServletRequest request) {
+        try {
+            // Authentication validation
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return new ResponseEntity<>("Authorization header missing or invalid", HttpStatus.UNAUTHORIZED);
+            }
+
+            String token = authHeader.substring(7);
+            if (!jwtUtil.validateToken(token)) {
+                return new ResponseEntity<>("Invalid token", HttpStatus.UNAUTHORIZED);
+            }
+
+            // Extract authenticated user's email from token
+            String authenticatedEmail = jwtUtil.extractUsername(token);
+
+            // Find the user in the database
+            Optional<User> userData = userDao.findByEmail(authenticatedEmail);
+            if (userData.isEmpty()) {
+                return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+            }
+
+            User user = userData.get();
+
+            // Delete the user
+            userDao.delete(user);
+
+            return ResponseEntity.ok("Account deleted successfully");
+
+        } catch (Exception e) {
+            return new ResponseEntity<>("An error occurred while deleting account",
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
