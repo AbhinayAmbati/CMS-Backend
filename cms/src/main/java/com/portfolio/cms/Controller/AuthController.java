@@ -4,6 +4,7 @@ import com.portfolio.cms.Model.User;
 import com.portfolio.cms.Service.AuthService;
 import com.portfolio.cms.Service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -57,8 +58,10 @@ public class AuthController {
             authService.sendPasswordResetEmail(email, resetToken);
             return ResponseEntity.ok().body(Map.of("message", "Reset link sent successfully"));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "An internal error occurred"));
         }
+
     }
 
     @GetMapping("/verify-reset-token/{token}")

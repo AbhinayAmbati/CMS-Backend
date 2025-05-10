@@ -37,7 +37,8 @@ public class SecurityConfig {
                 .csrf().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
                 .authorizeHttpRequests()
-                .requestMatchers("/auth/**").permitAll()                // Public routes
+                .requestMatchers("/api/auth/**").permitAll()             // Updated to match actual path
+                .requestMatchers("/auth/**").permitAll()                // Keep original path just in case
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")      // Requires ADMIN role
                 .anyRequest().permitAll()                               // All others are public
                 .and()

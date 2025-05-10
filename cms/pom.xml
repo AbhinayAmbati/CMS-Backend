@@ -95,6 +95,10 @@
 			<optional>true</optional> <!-- Optional so it doesn't get included in production -->
 		</dependency>
 
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+		</dependency>
 
 
 		<dependency>

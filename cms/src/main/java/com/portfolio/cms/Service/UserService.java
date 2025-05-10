@@ -133,12 +133,14 @@ public class UserService {
                 private Integer id;
                 private String username;
                 private String email;
+                private String profileImage;
                 private boolean admin;
 
                 public UserDetailsResponse(User user) {
                     this.id = user.getId();
                     this.username = user.getUsername(); // Assuming username is first name
                     this.email = user.getEmail();
+                    this.profileImage = user.getProfileImage();
                     this.admin = user.isAdmin();
                 }
 
@@ -146,6 +148,7 @@ public class UserService {
                 public Integer getId() { return id; }
                 public String getUsername() { return username; }
                 public String getEmail() { return email; }
+                public String getProfileImage() { return profileImage; }
                 public boolean isAdmin() { return admin; }
             }
 

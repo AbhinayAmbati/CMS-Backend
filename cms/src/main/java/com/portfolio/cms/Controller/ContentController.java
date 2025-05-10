@@ -50,14 +50,16 @@ public class ContentController {
     }
 
     // Update content
+    // Add this method to accept POST requests for updates
     @PutMapping("/update/{id}")
-    public ResponseEntity<Object> updateContent(
+    public ResponseEntity<Object> updateContentPost(
             @PathVariable Integer id,
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String excerpt,
             @RequestParam(required = false) String data,
             @RequestParam(required = false) MultipartFile image,
             HttpServletRequest request) {
+        // Reuse the same service method
         return contentService.updateContent(id, title, excerpt, data, image, request);
     }
 

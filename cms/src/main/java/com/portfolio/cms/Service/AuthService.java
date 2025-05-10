@@ -159,16 +159,124 @@ public class AuthService {
 
     // Helper method to send OTP via email
     private void sendOTPEmail(String email, String otp) {
-        try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(email);
-            message.setSubject("Your Registration Verification Code");
-            message.setText("Your verification code is: " + otp +
-                    "\n\nThis code will expire in 10 minutes. If you didn't request this code, please ignore this email.");
+        String subject = "Your Registration Verification Code";
+        String content = String.format("""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Verification Code</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Arial, sans-serif;
+                line-height: 1.7;
+                color: #2d3748;
+                margin: 0;
+                padding: 0;
+                background-color: #f7fafc;
+            }
+            .container {
+                max-width: 600px;
+                margin: 40px auto;
+                padding: 0;
+                background-color: #ffffff;
+                border-radius: 12px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+            .header {
+                background: linear-gradient(135deg, #38b2ac 0%%, #319795 100%%);
+                padding: 32px 20px;
+                text-align: center;
+                border-radius: 12px 12px 0 0;
+            }
+            .header h1 {
+                color: #ffffff;
+                margin: 0;
+                font-size: 28px;
+                font-weight: 600;
+                letter-spacing: 0.5px;
+            }
+            .content {
+                padding: 40px 32px;
+                background-color: #ffffff;
+                border-radius: 0 0 12px 12px;
+            }
+            .otp-container {
+                margin: 24px 0;
+                text-align: center;
+            }
+            .otp-code {
+                display: inline-block;
+                padding: 16px 32px;
+                background-color: #edf2f7;
+                border-radius: 8px;
+                font-size: 32px;
+                font-weight: 700;
+                letter-spacing: 4px;
+                color: #2d3748;
+                border: 1px dashed #cbd5e0;
+            }
+            .note {
+                font-size: 14px;
+                color: #718096;
+                margin-top: 24px;
+                padding: 16px;
+                background-color: #f8fafc;
+                border-radius: 8px;
+                border-left: 4px solid #38b2ac;
+            }
+            .footer {
+                text-align: center;
+                margin-top: 32px;
+                padding-top: 24px;
+                border-top: 1px solid #e2e8f0;
+                font-size: 13px;
+                color: #718096;
+            }
+            p {
+                margin: 16px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>Verification Code</h1>
+            </div>
+            <div class="content">
+                <p>Hello,</p>
+                <p>Thank you for registering with us. To complete your registration, please use the verification code below:</p>
+                <div class="otp-container">
+                    <div class="otp-code">%s</div>
+                </div>
+                <div class="note">
+                    <strong>Important Information:</strong>
+                    <p style="margin: 8px 0 0 0">• This code will expire in 10 minutes</p>
+                    <p style="margin: 4px 0 0 0">• If you didn't request this code, please ignore this email</p>
+                    <p style="margin: 4px 0 0 0">• Do not share this code with anyone</p>
+                </div>
+            </div>
+            <div class="footer">
+                <p>This is an automated message. Please do not reply to this email.</p>
+                <p style="margin-top: 8px;">© 2025 Job Portal. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """, otp);
 
-            emailSender.send(message);
-        } catch (Exception e) {
-            throw e; // Re-throw to be handled by calling method
+        try {
+            // Create MimeMessage instead of SimpleMailMessage to support HTML
+            MimeMessage mimeMessage = emailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "UTF-8");
+
+            helper.setTo(email);
+            helper.setSubject(subject);
+            helper.setText(content, true); // Set second parameter to true for HTML
+            emailSender.send(mimeMessage);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Failed to send OTP verification email", e);
         }
     }
 
@@ -242,45 +350,24 @@ public class AuthService {
             // Generate JWT with authorities included
             String jwtToken = jwtUtil.generateToken(userDetails);
 
-            // Response wrapper class
-            class JwtResponse {
-                private String jwtToken;
-                private User user;
-                private boolean isAdmin;
+            // Create response with only the requested fields
+            Map<String, Object> response = new HashMap<>();
+            response.put("jwtToken", jwtToken);
+            response.put("isAdmin", user.isAdmin());
 
-                public JwtResponse(String jwtToken, User user, boolean isAdmin) {
-                    this.jwtToken = jwtToken;
-                    this.user = user;
-                    this.isAdmin = isAdmin;
-                }
+            // Create a simplified user object with only the requested fields
+            Map<String, Object> simplifiedUser = new HashMap<>();
+            simplifiedUser.put("id", user.getId());
+            simplifiedUser.put("username", user.getUsername());
+            simplifiedUser.put("email", user.getEmail());
+            simplifiedUser.put("password", user.getPassword());
+            simplifiedUser.put("admin", user.isAdmin());
+            simplifiedUser.put("profileImage", user.getProfileImage());
+            simplifiedUser.put("verified", user.isVerified());
 
-                public String getJwtToken() {
-                    return jwtToken;
-                }
+            response.put("user", simplifiedUser);
 
-                public void setJwtToken(String jwtToken) {
-                    this.jwtToken = jwtToken;
-                }
-
-                public User getUser() {
-                    return user;
-                }
-
-                public void setUser(User user) {
-                    this.user = user;
-                }
-
-                public boolean isAdmin() {
-                    return isAdmin;
-                }
-
-                public void setAdmin(boolean admin) {
-                    isAdmin = admin;
-                }
-            }
-
-            JwtResponse jwtResponse = new JwtResponse(jwtToken, user, user.isAdmin());
-            return ResponseEntity.ok(jwtResponse);
+            return ResponseEntity.ok(response);
 
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);

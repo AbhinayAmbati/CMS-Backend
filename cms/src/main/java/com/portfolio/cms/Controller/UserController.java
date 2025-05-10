@@ -24,7 +24,10 @@ public class UserController {
     }
 
     @PostMapping("/updateuser")
-    public ResponseEntity<Object> updateUserDetails(@RequestBody User user, MultipartFile image, HttpServletRequest request) {
+    public ResponseEntity<Object> updateUserDetails(
+            @RequestPart("user") User user,
+            @RequestPart(value = "image", required = false) MultipartFile image,
+            HttpServletRequest request) {
         return userService.updateUserDetails(
                 user.getUsername(),
                 user.getEmail(),
@@ -56,6 +59,8 @@ public class UserController {
                 request
         );
     }
+
+
 }
 
 class OtpRequest {
