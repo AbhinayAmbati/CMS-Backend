@@ -1,9 +1,8 @@
 package com.portfolio.cms.Model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class User {
@@ -12,6 +11,18 @@ public class User {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
+    private String username;
+    private String email;
+    private String password;
+    private boolean admin = false;
+    private String profileImage;
+    private boolean verified = false;
+
+    // One-to-many relationship with Content
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Content> contents = new ArrayList<>();
+
+    // Getters and Setters
     public Integer getId() {
         return id;
     }
@@ -27,7 +38,6 @@ public class User {
     public void setUsername(String username) {
         this.username = username;
     }
-
 
     public String getEmail() {
         return email;
@@ -45,10 +55,6 @@ public class User {
         this.password = password;
     }
 
-    private String username;
-    private String email;
-    private String password;
-
     public boolean isAdmin() {
         return admin;
     }
@@ -56,8 +62,6 @@ public class User {
     public void setAdmin(boolean admin) {
         this.admin = admin;
     }
-
-    private boolean admin = false;
 
     public String getProfileImage() {
         return profileImage;
@@ -67,10 +71,6 @@ public class User {
         this.profileImage = profileImage;
     }
 
-    private String profileImage;
-
-    private boolean verified = false;
-
     public boolean isVerified() {
         return verified;
     }
@@ -79,5 +79,23 @@ public class User {
         this.verified = verified;
     }
 
-}
+    public List<Content> getContents() {
+        return contents;
+    }
 
+    public void setContents(List<Content> contents) {
+        this.contents = contents;
+    }
+
+    // Helper method to add content
+    public void addContent(Content content) {
+        contents.add(content);
+        content.setAuthor(this);
+    }
+
+    // Helper method to remove content
+    public void removeContent(Content content) {
+        contents.remove(content);
+        content.setAuthor(null);
+    }
+}

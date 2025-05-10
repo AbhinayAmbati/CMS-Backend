@@ -23,6 +23,25 @@ public class AdminController {
         }
     }
 
+    @PostMapping("/adduser")
+    public ResponseEntity<Object> addUser(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String username = request.get("username");
+        String password = request.get("password");
+        return adminService.addUser(email, username, password);
+    }
+
+    @PostMapping("/updateuser")
+    public ResponseEntity<Object> updateUser(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String newEmail = request.get("newEmail");
+        String username = request.get("username");
+        String password = request.get("password");
+        String admin = request.get("admin");
+        String verified = request.get("verified");
+        return adminService.updateUser(email,newEmail, username, password, admin, verified);
+    }
+
     @DeleteMapping("/deleteuser")
     public ResponseEntity<Object> deleteUser(@RequestBody Map<String, String> request) {
         String email = request.get("email");

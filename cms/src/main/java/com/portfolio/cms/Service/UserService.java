@@ -218,7 +218,6 @@ public class UserService {
                 }
 
                 try {
-                    // Upload new image to Cloudinary
                     Map<String, Object> uploadResult = cloudinary.uploader()
                             .upload(image.getBytes(),
                                     Map.of("folder", "user_profiles"));
